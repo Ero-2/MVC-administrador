@@ -26,13 +26,13 @@
 
         <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">Dashboard de Administración</h1>
 
-        <!-- Ejemplo: Botón en la parte superior o central de la página -->
-<div class="text-center mt-8">
-    <a href="{{ route('detalle-orden.dashboard') }}" 
-       class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition duration-300">
-        📦 Ir al Dashboard de Tracking de Paquetes
-    </a>
-</div>
+        <!-- Botón para ir al dashboard de tracking -->
+        <div class="text-center mt-8 mb-12">
+            <a href="{{ route('detalle-orden.dashboard') }}" 
+               class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition duration-300">
+                📦 Ir al Dashboard de Tracking de Paquetes
+            </a>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
@@ -51,16 +51,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($productos as $p)
-                                <tr class="border-b hover:bg-gray-50 transition-colors">
-                                    <td class="px-4 py-3 font-mono">{{ $p->IdProducto }}</td>
-                                    <td class="px-4 py-3">{{ $p->Nombre }}</td>
-                                    <td class="px-4 py-3 font-medium text-green-600">${{ number_format($p->Precio, 2) }}</td>
+                            @if(isset($productos) && count($productos) > 0)
+                                @foreach ($productos as $p)
+                                    <tr class="border-b hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 font-mono">{{ $p->IdProducto ?? $p->id }}</td>
+                                        <td class="px-4 py-3">{{ $p->Nombre ?? $p->nombre }}</td>
+                                        <td class="px-4 py-3 font-medium text-green-600">${{ number_format($p->Precio ?? $p->precio, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="3" class="px-4 py-3 text-center text-gray-500">No hay productos disponibles</td>
                                 </tr>
-                            @endforeach
+                            @endif
                         </tbody>
                     </table>
                 </div>
+                <!-- PAGINACIÓN DE PRODUCTOS -->
+                @if(isset($productos) && method_exists($productos, 'links'))
+                <div class="px-6 py-4 border-t border-gray-200">
+                    {{ $productos->links() }}
+                </div>
+                @endif
             </div>
 
             <!-- TABLA DE VENTAS -->
@@ -79,21 +91,33 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($ordenes as $o)
-                                <tr class="border-b hover:bg-gray-50 transition-colors">
-                                    <td class="px-4 py-3 font-mono">{{ $o->IdOrden }}</td>
-                                    <td class="px-4 py-3">#{{ $o->IdUsuario }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                                            {{ $o->MetodoPago }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 font-medium text-emerald-600">${{ number_format($o->Total, 2) }}</td>
+                            @if(isset($ordenes) && count($ordenes) > 0)
+                                @foreach ($ordenes as $o)
+                                    <tr class="border-b hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 font-mono">{{ $o->IdOrden ?? $o->id }}</td>
+                                        <td class="px-4 py-3">#{{ $o->IdUsuario ?? $o->usuario_id }}</td>
+                                        <td class="px-4 py-3">
+                                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                                {{ $o->MetodoPago ?? $o->metodo_pago }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 font-medium text-emerald-600">${{ number_format($o->Total ?? $o->total, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="4" class="px-4 py-3 text-center text-gray-500">No hay ventas recientes</td>
                                 </tr>
-                            @endforeach
+                            @endif
                         </tbody>
                     </table>
                 </div>
+                <!-- PAGINACIÓN DE VENTAS -->
+                @if(isset($ordenes) && method_exists($ordenes, 'links'))
+                <div class="px-6 py-4 border-t border-gray-200">
+                    {{ $ordenes->links() }}
+                </div>
+                @endif
             </div>
 
         </div>
@@ -230,7 +254,56 @@
             }
         }
     }
-</script>
+    </script>
+
+    <!-- Estilos para la paginación -->
+    <style>
+        .pagination {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .pagination li {
+            display: inline-block;
+        }
+        .pagination li a,
+        .pagination li span {
+            display: block;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #374151;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 40px;
+            text-align: center;
+        }
+        .pagination li.active a,
+        .pagination li.active span {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            font-weight: 600;
+        }
+        .pagination li a:hover:not(.active) {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .pagination li.disabled span {
+            color: #9ca3af;
+            background-color: #f9fafb;
+            border-color: #e5e7eb;
+            cursor: not-allowed;
+        }
+        .pagination .page-link {
+            cursor: pointer;
+        }
+    </style>
 
 </body>
 </html>
